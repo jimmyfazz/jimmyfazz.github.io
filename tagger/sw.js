@@ -1,6 +1,6 @@
 // Keeps the page on the phone so it opens without signal at the pitch. Only this page's own files; nothing else.
 // Bump VERSION whenever a file here changes (tools/publish_tagger.sh checks it), so phones pick up the new copy.
-const VERSION = "pitchreel-tagger-1";
+const VERSION = "pitchreel-tagger-2";
 const FILES = ["./", "./index.html", "./app.js", "./tagger.js", "./manifest.webmanifest", "./icon-192.png",
   "./icon-512.png", "./apple-touch-icon.png"];
 

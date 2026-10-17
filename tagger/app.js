@@ -117,6 +117,11 @@ function askNumber(id) {
   $("otherNumber").value = "";
   $("numberSheet").classList.add("open");
 }
+function closeNumberSheet() {
+  pendingGoal = null;
+  $("numberSheet").classList.remove("open");
+}
+
 function chooseNumber(n) {
   if (pendingGoal) setNumber(state.match, pendingGoal, n);
   pendingGoal = null;
@@ -186,7 +191,8 @@ function build() {
     if (/^\d{1,2}$/.test(v)) chooseNumber(+v);
   };
   $("notSure").onclick = () => chooseNumber(null);
-  $("numberSheet").addEventListener("click", (e) => { if (e.target === $("numberSheet")) chooseNumber(null); });
+  // tapping beside the sheet closes it and keeps the number already chosen; only "Not sure" clears it
+  $("numberSheet").addEventListener("click", (e) => { if (e.target === $("numberSheet")) closeNumberSheet(); });
   $("matchLabel").value = state.match.label;
   $("matchLabel").oninput = (e) => { state.match.label = e.target.value.slice(0, 60); save(); render(); };
   $("usLabel").value = state.settings.us;
