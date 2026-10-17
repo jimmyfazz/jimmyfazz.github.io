@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- nothing on this page talks to the internet: it can't send anything anywhere (connect-src 'none') -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="PitchReel tags">
+<meta name="theme-color" content="#0f1712">
+<title>PitchReel tags</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<style>
+  :root { --bg: #f6f7f5; --panel: #ffffff; --ink: #101511; --muted: #59625b; --line: #cfd6d0; --us: #0b7a3b;
+    --us-ink: #ffffff; --them: #1f3f8f; --them-ink: #ffffff; --phase: #111; --phase-ink: #fff; --warn: #8a5a00;
+    --raised: #eef1ee; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0f1712; --panel: #18211b; --ink: #f1f5f1; --muted: #a2ada4; --line: #2f3b33; --us: #1fa35a;
+      --them: #4c74d9; --phase: #f1f5f1; --phase-ink: #0f1712; --warn: #ffcc66; --raised: #222d25; }
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  body { padding: max(10px, env(safe-area-inset-top)) 12px max(16px, env(safe-area-inset-bottom)); }
+  main { max-width: 520px; margin: 0 auto; }
+  header { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px; }
+  header h1 { font-size: 15px; margin: 0; font-weight: 600; color: var(--muted); }
+  #scoreline { margin-left: auto; font-weight: 700; font-size: 18px; font-variant-numeric: tabular-nums; }
+  #clock { font-variant-numeric: tabular-nums; color: var(--muted); min-width: 3.2em; text-align: right; }
+  button { font: inherit; color: inherit; border: 1px solid var(--line); background: var(--panel); border-radius: 12px;
+    padding: 12px 8px; min-height: 52px; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+  button:active { transform: scale(.97); }
+  button:disabled { opacity: .4; }
+  .phase { width: 100%; background: var(--phase); color: var(--phase-ink); border: 0; font-size: 20px; font-weight: 700;
+    min-height: 64px; }
+  .hint { color: var(--muted); font-size: 13px; margin: 6px 2px 10px; min-height: 1.2em; }
+  .hint.warn { color: var(--warn); font-weight: 600; }
+  .teams { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .col { display: grid; gap: 8px; align-content: start; }
+  .col h2 { margin: 2px 0 0; font-size: 14px; text-align: center; letter-spacing: .04em; text-transform: uppercase; }
+  .goal { font-size: 22px; font-weight: 800; min-height: 84px; border: 0; }
+  .us .goal { background: var(--us); color: var(--us-ink); }
+  .them .goal { background: var(--them); color: var(--them-ink); }
+  .us h2 { color: var(--us); } .them h2 { color: var(--them); }
+  .wide { width: 100%; margin-top: 8px; }
+  .row { display: flex; gap: 8px; margin-top: 8px; }
+  .row > button { flex: 1; }
+  .send { background: var(--us); color: var(--us-ink); border: 0; font-weight: 700; }
+  ol#taps { list-style: none; margin: 12px 0 0; padding: 0; border-top: 1px solid var(--line); }
+  ol#taps li { display: flex; align-items: center; gap: 8px; padding: 6px 2px; border-bottom: 1px solid var(--line); }
+  ol#taps .min { width: 3em; color: var(--muted); font-variant-numeric: tabular-nums; }
+  ol#taps .what { flex: 1; }
+  ol#taps button { min-height: 36px; padding: 4px 10px; border-radius: 8px; font-size: 14px; }
+  .empty { color: var(--muted); padding: 8px 2px; font-size: 14px; }
+  details { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 8px; }
+  summary { color: var(--muted); padding: 6px 0; cursor: pointer; }
+  label { display: block; margin: 10px 0 4px; font-size: 14px; color: var(--muted); }
+  input { font: inherit; width: 100%; padding: 10px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--panel); color: var(--ink); }
+  .note { font-size: 13px; color: var(--muted); }
+  .sheet { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; align-items: flex-end; z-index: 5; }
+  .sheet.open { display: flex; }
+  .sheet > div { background: var(--panel); width: 100%; max-width: 520px; margin: 0 auto; border-radius: 16px 16px 0 0;
+    padding: 14px 12px max(16px, env(safe-area-inset-bottom)); }
+  .sheet h3 { margin: 0 0 10px; font-size: 17px; }
+  .numbers { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .numbers button { min-height: 50px; font-size: 19px; font-weight: 700; padding: 6px 0; }
+  #toast { position: fixed; left: 50%; top: max(10px, env(safe-area-inset-top)); transform: translateX(-50%);
+    background: var(--phase); color: var(--phase-ink); padding: 10px 16px; border-radius: 22px; font-weight: 600;
+    opacity: 0; transition: opacity .15s; pointer-events: none; z-index: 6; white-space: nowrap; }
+  #toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1 id="label">PitchReel tags</h1>
+    <span id="scoreline" aria-live="polite">0 – 0</span>
+    <span id="clock" aria-label="Minute of the match"></span>
+  </header>
+
+  <button id="phase" class="phase">Kick-off</button>
+  <p id="hint" class="hint">Tap “Kick-off” when the referee starts the match — everything lines up on it.</p>
+
+  <section class="teams">
+    <div class="col us" aria-label="Our team">
+      <h2 id="usName">Us</h2>
+      <button class="goal" data-kind="goal" data-side="us">Goal</button>
+    </div>
+    <div class="col them" aria-label="The other team">
+      <h2 id="themName">Them</h2>
+      <button class="goal" data-kind="goal" data-side="them">Goal</button>
+    </div>
+  </section>
+  <button class="wide" data-kind="moment">Great moment</button>
+
+  <div class="row">
+    <button id="undo">Undo last tap</button>
+    <button id="send" class="send">Send to the reel maker</button>
+  </div>
+
+  <ol id="taps" aria-label="Your taps, newest first"></ol>
+
+  <details id="more">
+    <summary>Match and settings</summary>
+    <label for="matchLabel">This match (for you — e.g. “v Rivals, home”; no children’s names)</label>
+    <input id="matchLabel" maxlength="60" autocomplete="off">
+    <div class="row">
+      <div style="flex:1"><label for="usLabel">Our team’s button</label><input id="usLabel" maxlength="12"></div>
+      <div style="flex:1"><label for="themLabel">Their team’s button</label><input id="themLabel" maxlength="12"></div>
+    </div>
+    <label for="squad">Our shirt numbers, for the scorer buttons (e.g. 1-16, 21)</label>
+    <input id="squad" inputmode="numeric" autocomplete="off" placeholder="1-20">
+    <div class="row">
+      <button id="newMatch">Start a new match</button>
+      <button id="resend">Send an earlier match…</button>
+    </div>
+    <p class="note"><b>How it works.</b> Add this page to your home screen (Share → Add to Home Screen) and always open it
+      from there: it then works without signal and keeps your taps even if the phone locks. Tap <b>Kick-off</b> on the
+      whistle, then each moment as it happens — a few seconds late is fine. After a goal for us, tap the scorer’s shirt
+      number (or “Not sure”). At the end, <b>Send to the reel maker</b> and choose WhatsApp, Messages, AirDrop or email.</p>
+    <p class="note"><b>Privacy.</b> Shirt numbers only — no names. The taps stay on this phone until you send them; this
+      page can’t send anything anywhere by itself.</p>
+  </details>
+</main>
+
+<div id="numberSheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="numberTitle">
+  <div>
+    <h3 id="numberTitle">Goal! Who scored? (shirt number)</h3>
+    <div id="numbers" class="numbers"></div>
+    <div class="row">
+      <input id="otherNumber" inputmode="numeric" maxlength="2" placeholder="Other no." aria-label="Another shirt number">
+      <button id="otherOk">OK</button>
+      <button id="notSure">Not sure</button>
+    </div>
+  </div>
+</div>
+
+<div id="sendSheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="sendTitle">
+  <div>
+    <h3 id="sendTitle">Send an earlier match</h3>
+    <div id="pastList" style="display:grid;gap:8px"></div>
+    <div class="row"><button id="sendClose">Close</button></div>
+  </div>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+<script type="module" src="app.js"></script>
+</body>
+</html>
